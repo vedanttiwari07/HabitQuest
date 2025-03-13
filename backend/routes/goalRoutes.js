@@ -26,4 +26,26 @@ router.post('/add', async (req,res) => {
         res.status(422).json({message: "Invalid goal input", error: error.message})
     }
 })
+
+router.patch('/:id', async (req, res) => {
+    try {
+        const { habits } = req.body;
+
+        // Find the goal
+        const goal = await Goal.findById(req.params.id);
+        if (!goal) {
+            return res.status(404).json({ message: "Goal not found" });
+        }
+
+        // Update the goal's habits field
+        goal.habits = habits;
+        await goal.save();
+
+        res.json({ message: "Habit assigned to goal successfully", goal });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating goal", error: error.message });
+    }
+});
+
+
 module.exports = router;
