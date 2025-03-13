@@ -46,4 +46,52 @@ router.patch('/:id', async (req,res) => {
     }
 })
 
+router.put('/:habitId/records/:recordId', async (req, res) => {
+    try {
+        const { value } = req.body; // Get updated value
+        const habit = await Habit.findById(req.params.habitId);
+
+        if (!habit) {
+            return res.status(404).json({ message: "Habit not found!" });
+        }
+
+        const record = habit.records.id(req.params.recordId);
+        if (!record) {
+            return res.status(404).json({ message: "Record not found!" });
+        }
+
+        record.value = value; // Update value
+
+        await habit.save();
+        res.json({ message: "Record updated successfully!", habit });
+    } catch (error) {
+        res.status(500).json({ message: "Could not update record!", error: error.message });
+    }
+});
+
+router.delete('/:habitId/records/:recordId', async (req, res) => {
+    try {
+        const habit = await Habit.findById(req.params.habitId);
+
+        if (!habit) {
+            return res.status(404).json({ message: "Habit not found!" });
+        }
+
+        const updatedRecords = habit.records.filter(record => record._id.toString() !== req.params.recordId);
+
+        if (updatedRecords.length === habit.records.length) {
+            return res.status(404).json({ message: "Record not found!" });
+        }
+
+        habit.records = updatedRecords; // Remove record
+        await habit.save();
+
+        res.json({ message: "Record deleted successfully!", habit });
+    } catch (error) {
+        res.status(500).json({ message: "Could not delete record!", error: error.message });
+    }
+});
+
+
+
 module.exports = router;
